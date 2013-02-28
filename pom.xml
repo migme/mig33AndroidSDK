@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>mig33AndroidSDK</groupId>
+	<artifactId>mig33AndroidSDK</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>mig33 Android SDK</name>
+	<packaging>apklib</packaging>
+	<description>mig33 Android SDK aka Crimson Angel project</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android</artifactId>
+			<version>4.1.1.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>support-v4</artifactId>
+			<version>r11</version>
+			<type>jar</type>
+		</dependency>
+	</dependencies>
+
+	<build>
+	    <finalName>${project.artifactId}</finalName>
+		<sourceDirectory>src</sourceDirectory>
+		<plugins>
+			<plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>android-maven-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
+                    <assetsDirectory>ignored</assetsDirectory>
+                    <resourceDirectory>${project.basedir}/res</resourceDirectory>
+                    <nativeLibrariesDirectory>ignored</nativeLibrariesDirectory>
+                    <sdk>
+                        <platform>16</platform>
+                    </sdk>
+                </configuration>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <ignoreMissingFile>false</ignoreMissingFile>
+                    <file>${project.basedir}/target/generated-sources/r/com/facebook/android/R.java</file>
+                    <outputFile>${project.basedir}/target/generated-sources/r/com/facebook/android/R.java</outputFile>
+                    <regex>false</regex>
+                    <token>static final int</token>
+                    <value>static int</value>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+		</plugins>
+	</build>
+</project>
