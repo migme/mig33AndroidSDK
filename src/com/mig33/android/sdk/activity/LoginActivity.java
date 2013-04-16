@@ -8,10 +8,7 @@ import android.view.Menu;
 import com.mig33.android.sdk.Mig33;
 import com.mig33.android.sdk.R;
 import com.mig33.android.sdk.Session;
-import com.mig33.android.sdk.R.layout;
-import com.mig33.android.sdk.R.menu;
 import com.projectgoth.BServiceHelper;
-import com.projectgoth.b.android.RestClient;
 
 public class LoginActivity extends Activity {
 

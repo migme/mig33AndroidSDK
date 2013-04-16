@@ -1,9 +1,9 @@
 package com.mig33.android.sdk;
 
-import com.mig33.android.sdk.activity.LoginActivity;
-
 import android.content.Context;
 import android.content.Intent;
+
+import com.mig33.android.sdk.activity.LoginActivity;
 
 
 public class Mig33 {
