@@ -5,6 +5,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import com.mig33.android.sdk.common.Config;
+
 import android.content.Context;
 import android.text.TextUtils;
 import android.webkit.CookieManager;
@@ -117,7 +119,7 @@ public class Session {
 		if (id == null || !id.trim().equalsIgnoreCase("deleted")) {
 			if (!TextUtils.isEmpty(id)) {
 				try {
-					String eid = "eid=" + URLEncoder.encode(id, Mig33.DEFAULT_ENCODING) + getCookiePrefix();
+					String eid = "eid=" + URLEncoder.encode(id, Config.getInstance().getEncoding()) + getCookiePrefix();
 					this.cookieManager.setCookie(url, eid);
 				} catch (UnsupportedEncodingException e) {
 					e.printStackTrace();

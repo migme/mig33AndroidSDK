@@ -35,8 +35,8 @@ import android.net.TrafficStats;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
-import com.mig33.android.sdk.Mig33;
 import com.mig33.android.sdk.Session;
+import com.mig33.android.sdk.common.Config;
 import com.projectgoth.b.BaseRestClient;
 import com.projectgoth.b.BaseRestParams;
 import com.projectgoth.b.MultipartFormData;
@@ -81,16 +81,16 @@ import com.projectgoth.b.exception.RestErrorException;
 
 public class RestClient extends BaseRestClient {
 	
-	public static final String	SSO_URL 			= "https://login.mig33.com/touch/datasvc";
-	public static final String	MIGBO_DATASVC_URL 	= "http://www.mig33.com/touch/datasvc";
-	public static final String	MULTIPART_POST_URL 	= "http://www.mig33.com/touch/post/hidden_post";
-	public static final String	IMAGES_URL 			= "http://www.mig33.com/resources/img";
+	public static final String	SSO_URL				= "https://login.mig33.com/touch/datasvc";
+	public static final String	MIGBO_DATASVC_URL	= "http://www.mig33.com/touch/datasvc";
+	public static final String	MULTIPART_POST_URL	= "http://www.mig33.com/touch/post/hidden_post";
+	public static final String	IMAGES_URL			= "http://www.mig33.com/resources/img";
 	
 	private static final Gson	gson				= new Gson();
 	
 	private boolean				connected			= false;
 	
-	private RestResponseCache	restResponseCache 	= RestResponseCache.getInstance();
+	private RestResponseCache	restResponseCache	= RestResponseCache.getInstance();
 	
 	private boolean				trafficStatsFlag	= false;
 	
@@ -125,7 +125,8 @@ public class RestClient extends BaseRestClient {
 		this(SSO_URL, MIGBO_DATASVC_URL, MULTIPART_POST_URL, "");
 	}
 	
-	public RestClient(String ssoUrl, String dataServiceUrl, String multipartPostUrl, String userAgent) {
+	public RestClient(String ssoUrl, String dataServiceUrl, String multipartPostUrl,
+			String userAgent) {
 		super(new AndroidPlatformLib(), ssoUrl, dataServiceUrl, multipartPostUrl, userAgent,
 				PostApplicationEnum.ANDROID);
 	}
@@ -146,7 +147,8 @@ public class RestClient extends BaseRestClient {
 			conn.setRequestProperty("User-Agent", userAgent);
 		}
 		
-		String cookie = Session.getInstance().getCookiesForHTTPHeader(conn.getURL().toExternalForm());
+		String cookie = Session.getInstance().getCookiesForHTTPHeader(
+				conn.getURL().toExternalForm());
 		if (!TextUtils.isEmpty(cookie)) {
 			conn.setRequestProperty("Cookie", cookie);
 		}
@@ -171,7 +173,7 @@ public class RestClient extends BaseRestClient {
 								eid = value.substring(4, end);
 							}
 							try {
-								setEId(URLDecoder.decode(eid, Mig33.DEFAULT_ENCODING));
+								setEId(URLDecoder.decode(eid, Config.getInstance().getEncoding()));
 							} catch (UnsupportedEncodingException e) {
 								System.out.println(e);
 							}
@@ -286,8 +288,8 @@ public class RestClient extends BaseRestClient {
 		}
 	}
 	
-	protected String sendRequest(String url, String method, String params, String contentType, RestType type, boolean force)
-			throws RestClientException {
+	protected String sendRequest(String url, String method, String params, String contentType,
+			RestType type, boolean force) throws RestClientException {
 		
 		url = resolveUrl(url);
 		System.out.println(method + " " + url);
@@ -301,9 +303,7 @@ public class RestClient extends BaseRestClient {
 		}
 		
 		String response = restResponseCache.getData(url, method, params, contentType);
-		boolean cached = true;
 		if (force || response == null) {
-			cached = false;
 			if (trafficStatsFlag) {
 				try {
 					response = sendRequestWithTrafficStats(url, method, params, contentType);
@@ -337,8 +337,9 @@ public class RestClient extends BaseRestClient {
 		}
 		return error;
 	}
-
-	public Object getDataOrThrow(RestType type, String response) throws RestErrorException, RestClientException {
+	
+	public Object getDataOrThrow(RestType type, String response) throws RestErrorException,
+			RestClientException {
 		try {
 			JSONObject json = new JSONObject(response);
 			Error error = getErrorFromResponse(response);
@@ -351,7 +352,8 @@ public class RestClient extends BaseRestClient {
 		}
 	}
 	
-	protected Object processData(RestType type, String data) throws RestErrorException,	RestClientException {
+	protected Object processData(RestType type, String data) throws RestErrorException,
+			RestClientException {
 		try {
 			if (type == RestType.CHECK_SESSION) {
 				return gson.fromJson(data, SessionCheckResponse.class);
@@ -376,7 +378,7 @@ public class RestClient extends BaseRestClient {
 			} else if (type == RestType.LOGIN) {
 				return gson.fromJson(data, LoginResponse.class);
 			} else if (type == RestType.LOGOUT) {
-
+				
 			} else if (type == RestType.GET_PROFILE) {
 				return gson.fromJson(data, Profile.class);
 			} else if (type == RestType.GET_BADGES) {
@@ -464,8 +466,8 @@ public class RestClient extends BaseRestClient {
 				HotTopicsResult hotTopicsResult = new HotTopicsResult();
 				final JSONObject jsonObj = new JSONObject(data);
 				List<HotTopic> hotTopicList = new ArrayList<HotTopic>();
-								
-				JSONObject search = jsonObj.getJSONObject("search");				
+				
+				JSONObject search = jsonObj.getJSONObject("search");
 				if (search != null) {
 					hotTopicsResult.setTotal(search.getInt("total"));
 					hotTopicsResult.setMaxScore(search.optDouble("maxScore"));
@@ -473,18 +475,18 @@ public class RestClient extends BaseRestClient {
 					hotTopicsResult.setTimedOut(search.getBoolean("timedOut"));
 					hotTopicsResult.setTookInMillis(search.getLong("tookInMillis"));
 					
-					JSONArray result = search.getJSONArray("result");					
-					if (result != null) {						
+					JSONArray result = search.getJSONArray("result");
+					if (result != null) {
 						final int resultLength = result.length();
 						for (int n = 0; n < resultLength; n++) {
 							JSONObject item = result.getJSONObject(n);
 							if (item != null) {
 								JSONArray names = item.names();
 								if (names != null) {
-									final int namesLength = names.length();									
+									final int namesLength = names.length();
 									for (int m = 0; m < namesLength; m++) {
-										final String itemString = item.getJSONObject(names.getString(m))
-												.toString();
+										final String itemString = item.getJSONObject(
+												names.getString(m)).toString();
 										hotTopicList.add(gson.fromJson(itemString, HotTopic.class));
 									}
 								}
@@ -525,12 +527,12 @@ public class RestClient extends BaseRestClient {
 					
 					migAlerts.setUnread(json.optInt("unread"));
 					
-					final JSONArray jsonAlertsArr = json.optJSONArray("alerts");					
+					final JSONArray jsonAlertsArr = json.optJSONArray("alerts");
 					if (jsonAlertsArr == null) {
 						return migAlerts;
 					}
 					
-					final Alert[] alerts = deserializeAlerts(jsonAlertsArr);					
+					final Alert[] alerts = deserializeAlerts(jsonAlertsArr);
 					migAlerts.setAlerts(alerts);
 				} catch (JSONException e) {
 					e.printStackTrace();
@@ -540,11 +542,12 @@ public class RestClient extends BaseRestClient {
 			} else if (type == RestType.GET_MIG_ALERTS_UNREAD) {
 				MigAlertsUnreadResult migAlertsUnreadResult = new MigAlertsUnreadResult();
 				final JSONObject json;
-				try {														
+				try {
 					json = new JSONObject(data);
 					migAlertsUnreadResult.setTimestamp(json.optLong("timestamp"));
 					
-					final JSONArray jsonMigAlertsUnreadArr = json.optJSONArray("notification_destinations");
+					final JSONArray jsonMigAlertsUnreadArr = json
+							.optJSONArray("notification_destinations");
 					if (jsonMigAlertsUnreadArr == null) {
 						return null;
 					}
@@ -558,7 +561,7 @@ public class RestClient extends BaseRestClient {
 						migAlertsUnread.setDestination(jsonMigAlertsUnread.optInt("type"));
 						migAlertsUnread.setCount(jsonMigAlertsUnread.optInt("count"));
 						
-						JSONArray jsonAlertsArr = jsonMigAlertsUnread.optJSONArray("alerts");					
+						JSONArray jsonAlertsArr = jsonMigAlertsUnread.optJSONArray("alerts");
 						if (jsonAlertsArr == null) {
 							return null;
 						}
@@ -570,15 +573,13 @@ public class RestClient extends BaseRestClient {
 					}
 					
 					migAlertsUnreadResult.setAlerts(migAlertsUnreadArr);
-				}
-				catch (JSONException e) {
+				} catch (JSONException e) {
 					e.printStackTrace();
 					return null;
 				}
 				
 				return migAlertsUnreadResult;
-			}
-			else if (type == RestType.SEND_ACTION) {
+			} else if (type == RestType.SEND_ACTION) {
 				JSONObject json;
 				try {
 					json = new JSONObject(data);
@@ -616,7 +617,7 @@ public class RestClient extends BaseRestClient {
 		return null;
 	}
 	
-	private Alert[] deserializeAlerts(JSONArray jsonAlerts) throws JSONException {				
+	private Alert[] deserializeAlerts(JSONArray jsonAlerts) throws JSONException {
 		int jsonAlertsLen = jsonAlerts.length();
 		Alert[] alerts = new Alert[jsonAlertsLen];
 		for (int n = 0; n < jsonAlertsLen; n++) {
@@ -629,8 +630,7 @@ public class RestClient extends BaseRestClient {
 			
 			JSONObject jsonImage = jsonAlert.optJSONObject("image");
 			if (jsonImage != null) {
-				DisplayImage image = gson
-						.fromJson(jsonImage.toString(), DisplayImage.class);
+				DisplayImage image = gson.fromJson(jsonImage.toString(), DisplayImage.class);
 				alert.setImage(image);
 			}
 			
@@ -650,13 +650,11 @@ public class RestClient extends BaseRestClient {
 					jsonVariable = jsonVariables.getJSONObject(m);
 					variable = new Variable();
 					variable.setName(jsonVariable.optString("name"));
-					variable.setType(ObjectTypeEnum.fromValue(jsonVariable
-							.optString("type")));
+					variable.setType(ObjectTypeEnum.fromValue(jsonVariable.optString("type")));
 					
 					JSONArray jsonVarLink = jsonVariable.optJSONArray("link");
 					if (jsonVarLink != null) {
-						variable.setLink(gson.fromJson(jsonVarLink.toString(),
-								ViewURL[].class));
+						variable.setLink(gson.fromJson(jsonVarLink.toString(), ViewURL[].class));
 					}
 					
 					JSONObject jsonVarLabel = jsonVariable.optJSONObject("label");
@@ -682,7 +680,8 @@ public class RestClient extends BaseRestClient {
 		return alerts;
 	}
 	
-	public String sendMultipartRequest(String url, MultipartFormData params) throws RestClientException {
+	public String sendMultipartRequest(String url, MultipartFormData params)
+			throws RestClientException {
 		
 		url = resolveUrl(url);
 		System.out.println("multipart req: " + url);

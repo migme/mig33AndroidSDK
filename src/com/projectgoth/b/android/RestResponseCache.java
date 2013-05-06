@@ -14,25 +14,27 @@ import android.support.v4.util.LruCache;
  * 
  */
 public class RestResponseCache {
-
-	public static final int		REST_RESPONSE_CACHE_MAX_SIZE	= 150;
+	
+	public static final int						REST_RESPONSE_CACHE_MAX_SIZE	= 150;
 	
 	private LruCache<String, ResponseObject>	cache;
 	
 	private static RestResponseCache			instance;
 	
-	private boolean								enabled = false;
-
+	private boolean								enabled							= false;
+	
 	class ResponseObject {
-		private long	expiry = 0;
+		private long	expiry	= 0;
 		private String	data;
 		
 		/**
 		 * @param data
 		 *            - the data to cache
 		 * @param expiry
-		 *            - data expiry in seconds. defaults to {@value #DEFAULT_RESPONSE_DATA_EXPIRY} seconds if not
-		 *            specified. cannot be lower than {@value #DEFAULT_RESPONSE_DATA_EXPIRY} seconds.
+		 *            - data expiry in seconds. defaults to
+		 *            {@value #DEFAULT_RESPONSE_DATA_EXPIRY} seconds if not
+		 *            specified. cannot be lower than
+		 *            {@value #DEFAULT_RESPONSE_DATA_EXPIRY} seconds.
 		 */
 		public ResponseObject(String data, int expiry) {
 			init(data, expiry);
@@ -40,7 +42,8 @@ public class RestResponseCache {
 		
 		/**
 		 * @param data
-		 *            - the data to cache, and will expire in {@value #DEFAULT_RESPONSE_DATA_EXPIRY} seconds.
+		 *            - the data to cache, and will expire in
+		 *            {@value #DEFAULT_RESPONSE_DATA_EXPIRY} seconds.
 		 */
 		public ResponseObject(String data) {
 			init(data, 0);
@@ -103,18 +106,11 @@ public class RestResponseCache {
 	private String getKey(String url, String method, String params, String contentType) {
 		return method + url + params + contentType;
 	}
-
+	
 	/**
 	 * @return the enabled
 	 */
 	public boolean isEnabled() {
 		return enabled;
 	}
-
-//	/**
-//	 * @param enabled the enabled to set
-//	 */
-//	public void setEnabled(boolean enabled) {
-//		this.enabled = enabled;
-//	}
 }

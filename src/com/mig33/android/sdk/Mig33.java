@@ -8,8 +8,8 @@ import com.mig33.android.sdk.activity.LoginActivity;
 
 public class Mig33 {
 
+	// TODO: create proper user agent for SDK tracking 
 	public static final String SDK_VERSION = "0.1.0";
-	public static final String DEFAULT_ENCODING	= "UTF-8";
 	
 	public static final String INTENT_ACTION_LOGIN = "com.mig33.intent.action.LOGIN";
 	public static final String INTENT_EXTRA_USERID = "userid";
@@ -23,7 +23,6 @@ public class Mig33 {
 	private LoginListener mLoginListener;
 	
 	private Mig33() {
-		
 	}
 	
 	public static Mig33 getInstance() {
