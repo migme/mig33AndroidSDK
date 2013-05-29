@@ -5,20 +5,23 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-import com.mig33.android.sdk.common.Config;
-
 import android.content.Context;
 import android.text.TextUtils;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 
-public class Session {
+import com.mig33.android.sdk.common.Config;
+import com.mig33.android.sdk.model.UserInfo;
 
-	private static final Session mInstance = new Session();
+public class Session {
 	
-	private String userId;
-	private String username;
-	private String sessionId;
+	private static final Session	mInstance	= new Session();
+	
+	private String					userId;
+	private String					username;
+	private String					sessionId;
+	
+	private UserInfo				userInfo;
 	
 	/**
 	 * Cookie manager
@@ -44,34 +47,49 @@ public class Session {
 		this.cookieManager.setAcceptCookie(true);
 		this.cookieManager.removeSessionCookie();
 	}
-
+	
 	public String getUserId() {
 		return userId;
 	}
-
+	
 	public void setUserId(String userId) {
 		this.userId = userId;
 	}
-
+	
 	public String getUsername() {
 		return username;
 	}
-
+	
 	public void setUsername(String username) {
 		this.username = username;
 	}
-
+	
 	public String getSessionId() {
 		return sessionId;
 	}
-
+	
 	public void setSessionId(String sessionId) {
 		this.sessionId = sessionId;
 		
-//		if (!TextUtils.isEmpty(sessionId) && isFacebookSession()) {
-//			setFacebookSessionId(sessionId);
-//		}
+		// if (!TextUtils.isEmpty(sessionId) && isFacebookSession()) {
+		// setFacebookSessionId(sessionId);
+		// }
 		setCookieSessionId(sessionId);
+	}
+	
+	/**
+	 * @return the userInfo
+	 */
+	public UserInfo getUserInfo() {
+		return userInfo;
+	}
+	
+	/**
+	 * @param userInfo
+	 *            the userInfo to set
+	 */
+	public void setUserInfo(UserInfo userInfo) {
+		this.userInfo = userInfo;
 	}
 	
 	public String getCookiesForHTTPHeader(String url) {
@@ -93,7 +111,7 @@ public class Session {
 	public String getCookiePrefix() {
 		StringBuilder domainForCookie = new StringBuilder();
 		String pageletServerUrl = getUrlPrefix();
-
+		
 		try {
 			URL url = new URL(pageletServerUrl);
 			String[] hostParts = url.getHost().split("\\.");
@@ -105,11 +123,11 @@ public class Session {
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
-
+		
 		if (domainForCookie.length() == 0) {
 			domainForCookie.append(".mig33.com");
 		}
-
+		
 		return "; domain=" + domainForCookie.toString() + "; path=/";
 	}
 	
@@ -119,7 +137,8 @@ public class Session {
 		if (id == null || !id.trim().equalsIgnoreCase("deleted")) {
 			if (!TextUtils.isEmpty(id)) {
 				try {
-					String eid = "eid=" + URLEncoder.encode(id, Config.getInstance().getEncoding()) + getCookiePrefix();
+					String eid = "eid=" + URLEncoder.encode(id, Config.getInstance().getEncoding())
+							+ getCookiePrefix();
 					this.cookieManager.setCookie(url, eid);
 				} catch (UnsupportedEncodingException e) {
 					e.printStackTrace();
@@ -127,9 +146,15 @@ public class Session {
 			}
 		}
 		
-//		this.cookieManager.setCookie(url, "theme=" + Theme.getName() + getCookiePrefix());
-//		this.cookieManager.setCookie(url, "lang=" + ApplicationEx.getLanguageId()
-//				+ getCookiePrefix());
+		// this.cookieManager.setCookie(url, "theme=" + Theme.getName() +
+		// getCookiePrefix());
+		// this.cookieManager.setCookie(url, "lang=" +
+		// ApplicationEx.getLanguageId()
+		// + getCookiePrefix());
 		CookieSyncManager.getInstance().sync();
+	}
+	
+	public boolean isMe(String userId) {
+		return (userId != null && (userId.equals("@me") || userId.equals(this.userId)));
 	}
 }

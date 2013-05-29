@@ -1,30 +1,41 @@
 package com.mig33.android.sdk.api;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import com.mig33.android.sdk.common.Tools;
+import com.mig33.android.sdk.model.PeopleResponse;
 import com.mig33.android.sdk.model.UserInfo;
-import com.projectgoth.BServiceHelper;
-import com.projectgoth.b.data.Profile;
-import com.projectgoth.b.exception.RestClientException;
-import com.projectgoth.b.exception.RestErrorException;
+import com.mig33.android.sdk.service.RestRequest;
+import com.mig33.android.sdk.service.RestService;
 
+/**
+ * People.java
+ * 
+ * @author warrenbalcos on May 8, 2013
+ */
 public class People {
 	
-	public static Profile getProfile(String username) throws RestErrorException,
-			RestClientException {
-		return BServiceHelper.getInstance().getRestClient().getProfileByUsername(username);
+	private static final String		TAG			= "PEOPLE";
+	
+	private RestService				restService	= RestService.getInstance();
+	
+	private List<PeopleListener>	listeners;
+	
+	private static final People		instance	= new People();
+	
+	private People() {
+		listeners = Collections.synchronizedList(new ArrayList<PeopleListener>());
 	}
 	
-	// GET /api/rest/people/117/@friends
-	//  
-	// ?fields=username%2Cid%2CdisplayName%2Ccountry%2CstatusMessage%2CthumbnailUrl
-	// &oauth_nonce=add7f1c3ec5424ec1ab2a3e11703eaba
-	// &oauth_version=1.0
-	// &oauth_timestamp=1304051441
-	// &oauth_consumer_key=2e3432ec5f13685c569253ac26350f0304db67ad1
-	// &xoauth_requestor_id=117
-	// &oauth_signature_method=HMAC-SHA1
-	// &oauth_signature=eYefAuAGX3v06Y%2F%2FPYo3r4I5fdY%3D
+	public static synchronized People getInstance() {
+		return instance;
+	}
+	
+	public interface PeopleListener {
+		public void onNewDataAvailable(String userId, String groupId);
+	}
 	
 	public enum PeopleField {
 		ID("id"),
@@ -58,24 +69,61 @@ public class People {
 		}
 	}
 	
-	public static UserInfo getUserInfo(String id) {
-		UserInfo user = null;
-		return user;
+	public UserInfo getMyInfo() {
+		PeopleResponse result = restService.processPeople(RestRequest.ME, RestRequest.SELF);
+		if (result != null) {
+			Tools.log(TAG, "getMyInfo: " + result.toJsonStr());
+			return result.getUserInfo();
+		}
+		return null;
 	}
 	
-	public static UserInfo getMyInfo() {
-		UserInfo user = null;
-		return user;
+	public ArrayList<UserInfo> getMyFriendsInfo() {
+		PeopleResponse result = restService.processPeople(RestRequest.ME, RestRequest.FRIENDS);
+		if (result != null) {
+			Tools.log(TAG, "getMyFriendsInfo: " + result.toJsonStr());
+			return result.getUserInfoList();
+		}
+		return null;
 	}
 	
-	public static ArrayList<UserInfo> getFriendsInfo(String id) {
-		ArrayList<UserInfo> friends = new ArrayList<UserInfo>();
-		return friends;
+	public UserInfo getUserInfo(String id) {
+		PeopleResponse result = restService.processPeople(id, RestRequest.SELF);
+		if (result != null) {
+			Tools.log(TAG, "getUserInfo: " + result.toJsonStr());
+			return result.getUserInfo();
+		}
+		return null;
 	}
 	
-	public static ArrayList<UserInfo> getMyFriendsInfo() {
-		ArrayList<UserInfo> friends = new ArrayList<UserInfo>();
-		return friends;
+	public ArrayList<UserInfo> getFriendsInfo(String id) {
+		PeopleResponse result = restService.processPeople(id, RestRequest.FRIENDS);
+		if (result != null) {
+			Tools.log(TAG, "getFriendsInfo: " + result.toJsonStr());
+			return result.getUserInfoList();
+		}
+		return null;
 	}
-
+	
+	public void addListener(PeopleListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void onDataUpdated(String userId, String groupId) {
+		cleanListeners();
+		for (PeopleListener listener : listeners) {
+			if (listener != null) {
+				listener.onNewDataAvailable(userId, groupId);
+			}
+		}
+	}
+	
+	private void cleanListeners() {
+		for (int i = 0; i < listeners.size(); i++) {
+			PeopleListener temp = listeners.get(i);
+			if (temp == null) {
+				listeners.remove(i);
+			}
+		}
+	}
 }

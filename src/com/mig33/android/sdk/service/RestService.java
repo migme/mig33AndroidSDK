@@ -5,20 +5,15 @@
  */
 package com.mig33.android.sdk.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import com.google.gson.Gson;
-import com.mig33.android.sdk.Session;
-import com.mig33.android.sdk.api.People.PeopleField;
+import com.mig33.android.sdk.api.People;
 import com.mig33.android.sdk.cache.DataCache;
+import com.mig33.android.sdk.cache.DataCache.CachedData;
 import com.mig33.android.sdk.common.Tools;
-import com.mig33.android.sdk.model.UserInfo;
-import com.projectgoth.b.android.RestParams;
-import com.projectgoth.b.exception.RestClientException;
-import com.projectgoth.b.exception.RestErrorException;
+import com.mig33.android.sdk.model.ActivityItem;
+import com.mig33.android.sdk.model.ApiResponse;
+import com.mig33.android.sdk.model.PaymentItem;
+import com.mig33.android.sdk.model.PeopleResponse;
+import com.mig33.android.sdk.service.RestRequest.Type;
 
 /**
  * RestService.java
@@ -36,9 +31,6 @@ public class RestService {
 	
 	private RequestQueueManager			manager		= RequestQueueManager.getInstance();
 	
-	// TODO: create request queuing and executor service
-	// TODO: response cache and new data broadcast update
-	
 	private RestService() {
 	}
 	
@@ -46,47 +38,35 @@ public class RestService {
 		return instance;
 	}
 	
-	public ArrayList<UserInfo> getMyInfo() {
-		return getUserInfo(Session.getInstance().getUserId());
-	}
-	
-	private ArrayList<UserInfo> getUserInfo(String id) {
+	public PeopleResponse processPeople(String id, String groupId) {
 		
-		RestType type = RestType.PEOPLE;
-		String url = type.getUrl();
-		url = String.format(url, new Object[] { id, "@self" });
+		RestRequest request = new RestRequest(Type.PEOPLE, id, groupId, "@app", false);
+		request.setContentType(RestRequest.CONTENT_TYPE_JSON);
+		Tools.log(TAG, "getUserInfo: " + request.getKey());
 		
-		Tools.log(TAG, "getUserInfo: " + type.getMethod() + " " + url);
+		request.addPayloadParam("fields", People.PeopleField.getAllFields());
 		
-		RestParams params = new RestParams();
-		params.set("fields", PeopleField.getAllFields());
-		
-		RestRequest request = new RestRequest(RestRequest.Type.PEOPLE, type.getMethod(), url,
-				params.getEncodedUrl());
-		manager.queueRequest(request);
-		
-		String data = cache.getData(request.getKey());
-		UserInfo[] users= null;
+		PeopleResponse response = null;
+		CachedData data = cache.getCachedData(request.getKey());
 		if (data != null) {
-			try {
-				users = (UserInfo[]) RestRequest.parseData(request.getType(), data);
-			} catch (RestErrorException e) {
-				Tools.log(e);
-			} catch (RestClientException e) {
-				Tools.log(e);
+			ApiResponse resp = ApiResponse.fromString(data.getData(), PeopleResponse.class);
+			Tools.log(TAG, "processPeople: " + resp.getType() + " " + resp.getEntry());
+			if (resp != null) {
+				response = (PeopleResponse) resp;
 			}
 		}
-		return new ArrayList<UserInfo>(Arrays.asList(users));
+		
+		if (data == null || data.isExpired()) {
+			manager.queueRequest(request);
+		}
+		return response;
 	}
 	
-	public ArrayList<UserInfo> getFriendsInfo(String id) {
-		ArrayList<UserInfo> friends = new ArrayList<UserInfo>();
-		return friends;
+	public void processPayment(PaymentItem item) {
+		manager.queueRequest(RestRequest.createPaymentRequest(item));
 	}
 	
-	public static ArrayList<UserInfo> getMyFriendsInfo() {
-		ArrayList<UserInfo> friends = new ArrayList<UserInfo>();
-		return friends;
+	public void processActivity(ActivityItem item) {
+		manager.queueRequest(RestRequest.createActivityRequest(item));
 	}
-	
 }
