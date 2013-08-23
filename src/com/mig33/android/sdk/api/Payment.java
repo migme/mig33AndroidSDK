@@ -84,7 +84,7 @@ public class Payment {
 		return item.getReference();
 	}
 	
-	private PaymentItem createPaymentItem(String description, int price) {
+	private PaymentItem createPaymentItem(String description, float price) {
 		PaymentItem item = new PaymentItem(description, String.valueOf(price));
 		while (paymentItems.containsKey(item.getReference())) {
 			item = new PaymentItem(description, String.valueOf(price));
